@@ -1,14 +1,6 @@
 #include "../exercise.h"
 
-// READ: 左值右值（概念）<https://learn.microsoft.com/zh-cn/cpp/c-language/l-value-and-r-value-expressions?view=msvc-170>
-// READ: 左值右值（细节）<https://zh.cppreference.com/w/cpp/language/value_category>
-// READ: 关于移动语义 <https://learn.microsoft.com/zh-cn/cpp/cpp/rvalue-reference-declarator-amp-amp?view=msvc-170#move-semantics>
-// READ: 如果实现移动构造 <https://learn.microsoft.com/zh-cn/cpp/cpp/move-constructors-and-move-assignment-operators-cpp?view=msvc-170>
-
-// READ: 移动构造函数 <https://zh.cppreference.com/w/cpp/language/move_constructor>
-// READ: 移动赋值 <https://zh.cppreference.com/w/cpp/language/move_assignment>
-// READ: 运算符重载 <https://zh.cppreference.com/w/cpp/language/operators>
-
+// DynFibonacci 类定义
 class DynFibonacci {
     size_t *cache;
     int cached;
@@ -52,7 +44,7 @@ public:
 
     // 缓存优化的斐波那契计算
     size_t operator[](int i) {
-        for (; false; ++cached) {
+        for (; cached <= i; ++cached) {
             cache[cached] = cache[cached - 1] + cache[cached - 2];
         }
         return cache[i];
@@ -60,6 +52,8 @@ public:
 
     // 常量版本的 get 方法：仅能读取缓存中的值
     size_t operator[](int i) const {
+        // 如果缓存已经被移动（为空），返回错误或抛出异常
+        ASSERT(cache != nullptr, "Accessing moved-from object.");
         ASSERT(i <= cached, "i out of range");
         return cache[i];
     }

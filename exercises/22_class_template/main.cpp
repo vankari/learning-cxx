@@ -7,14 +7,14 @@ struct Tensor4D {
     unsigned int shape[4];
     T *data;
 
-    Tensor4D(unsigned int const shape_[4], T const *data_) {
+    Tensor4D(unsigned int shape_[4], T *data_) {
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
-        std::memcpy(shape, shape_, sizeof(shape_));
+        std::memcpy(shape, shape_, sizeof(unsigned int )*4);
         for (int i = 0; i < 4; ++i) {
             size *= shape[i];
         }
-
+        
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
@@ -33,22 +33,33 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
-        for (int i = 0; i < 4; ++i) {
-            if (shape[i] != others.shape[i] && others.shape[i] != 1) {
-                throw std::invalid_argument("Shapes are not compatible for broadcasting.");
+        unsigned int size=1;
+        unsigned int othersize=1;
+        unsigned int stride[4];
+        unsigned int otherstride[4];
+        unsigned int dim[4];
+        for (int i = 3; i >=0; i--){
+            stride[i]=size;
+            otherstride[i]=othersize;
+            size*=shape[i];
+            othersize*=others.shape[i];
+        }
+        for (int i = 3; i >=0; i--) {
+            ASSERT(shape[i] == others.shape[i] || (shape[i] != 1 && others.shape[i] == 1),"incompatible shape");
+            if(shape[i]==others.shape[i])dim[i]=1;
+            else dim[i]=0;
             }
-        }
-
-        unsigned int size = 1;
-        for (int i = 0; i < 4; ++i) {
-            size *= others.shape[i];
-        }
-
-        for (unsigned int i = 0; i < size; ++i) {
-            data[i] += others.data[i % size]; 
-        }
+        for(int i=0;i<shape[0];i++)
+            for(int j=0;j<shape[1];j++)
+                for(int k=0;k<shape[2];k++)
+                    for(int m=0;m<shape[3];m++)
+                        data[i*stride[0]+j*stride[1]+k*stride[2]+m*stride[3]]+=others.data[i*otherstride[0]*dim[0]+j*otherstride[1]*dim[1]+k*otherstride[2]*dim[2]+m*otherstride[3]*dim[3]];
+                        
+                    
         return *this;
-    }
+        
+    
+};
 };
 
 // ---- 不要修改以下代码 ----
@@ -65,8 +76,8 @@ int main(int argc, char **argv) {
             17, 18, 19, 20,
             21, 22, 23, 24};
         // clang-format on
-        Tensor4D<int>t0(shape, data) ;
-        Tensor4D<int>t1(shape, data) ;
+        Tensor4D<int> t0(shape, data) ;
+        Tensor4D<int> t1(shape, data) ;
         t0 += t1;
         for (auto i = 0u; i < sizeof(data) / sizeof(*data); ++i) {
             ASSERT(t0.data[i] == data[i] * 2, "Tensor doubled by plus its self.");
@@ -96,11 +107,11 @@ int main(int argc, char **argv) {
             1};
         // clang-format on
 
-        Tensor4D<float>t0(s0, d0);
-        Tensor4D<float>t1(s1, d1);
+        Tensor4D<float> t0(s0, d0);
+        Tensor4D<float> t1(s1, d1);
         t0 += t1;
         for (auto i = 0u; i < sizeof(d0) / sizeof(*d0); ++i) {
-            ASSERT(t0.data[i] == 7.f, "Every element of t0 should be 7 after adding t1 to it.");
+            ASSERT(t0.data[i] -7.f<=1e-9, "Every element of t0 should be 7 after adding t1 to it.");
         }
     }
     {

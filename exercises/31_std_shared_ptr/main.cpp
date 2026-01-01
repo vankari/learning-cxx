@@ -10,36 +10,36 @@ int main(int argc, char **argv) {
     std::shared_ptr<int> ptrs[]{shared, shared, shared};
 
     std::weak_ptr<int> observer = shared;
-    ASSERT(observer.use_count() == 3, ""); // Initial count should be 3
+    ASSERT(observer.use_count() == 4, ""); 
 
     ptrs[0].reset();
-    ASSERT(observer.use_count() == 2, ""); // After resetting ptrs[0], count should be 2
+    ASSERT(observer.use_count() == 3, "");
 
     ptrs[1] = nullptr;
-    ASSERT(observer.use_count() == 1, ""); // After resetting ptrs[1], count should be 1
+    ASSERT(observer.use_count() == 2, ""); 
 
     ptrs[2] = std::make_shared<int>(*shared);
-    ASSERT(observer.use_count() == 1, ""); // No increase in count, since new object is created
+    ASSERT(observer.use_count() == 1, ""); 
 
     ptrs[0] = shared;
     ptrs[1] = shared;
     ptrs[2] = std::move(shared);
-    ASSERT(observer.use_count() == 3, ""); // After moving shared, count should be 3
+    ASSERT(observer.use_count() == 3, ""); 
 
     std::ignore = std::move(ptrs[0]);
     ptrs[1] = std::move(ptrs[1]);
     ptrs[1] = std::move(ptrs[2]);
-    ASSERT(observer.use_count() == 3, ""); // Count remains the same
+    ASSERT(observer.use_count() == 2, ""); 
 
     shared = observer.lock();
-    ASSERT(observer.use_count() == 4, ""); // Locking observer should increase count to 4
+    ASSERT(observer.use_count() == 3, ""); 
 
     shared = nullptr;
     for (auto &ptr : ptrs) ptr = nullptr;
-    ASSERT(observer.use_count() == 0, ""); // After resetting all, count should be 0
+    ASSERT(observer.use_count() == 0, ""); 
 
     shared = observer.lock();
-    ASSERT(observer.use_count() == 1, ""); // After locking again, count should be 1
+    ASSERT(observer.use_count() == 0, ""); 
 
     return 0;
 }

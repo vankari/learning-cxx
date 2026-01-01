@@ -5,9 +5,9 @@ bool is_fibonacci(int *ptr, int len, int stride) {
     ASSERT(len >= 3, "`len` should be at least 3");
 
     // 遍历从第一个到倒数第三个元素，检查斐波那契关系
-    for (int i = 0; i < len - 2 * stride; i += stride) {
+    for (int i = 0; i < len-2; i ++) {
         // arr[i + 2] 应该等于 arr[i] + arr[i + 1]
-        if (*(ptr + i) + *(ptr + i + stride) != *(ptr + i + 2 * stride)) {
+        if (*(ptr + i*stride) + *(ptr + (i+1)*stride) != *(ptr + (i + 2) * stride)) {
             return false;  // 不符合斐波那契关系，返回 false
         }
     }
